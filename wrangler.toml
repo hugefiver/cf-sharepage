@@ -1,0 +1,13 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
+
+name = "cf-sharepage"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+
+[[r2_buckets]]
+binding = "SPA_BUCKET"
+bucket_name = "cf-sharepage-spa"
+
+[vars]
+MAX_HTML_BYTES = "5242880"
+MAX_VERSIONS = "20"
