@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate pnpm
+        run: corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Sync Worker runtime secrets
+        run: |
+          test -n "$PUBLISH_TOKEN"
+          test -n "$UPDATE_TOKEN_SECRET"
+          printf '%s' "$PUBLISH_TOKEN" | pnpm exec wrangler secret put PUBLISH_TOKEN
+          printf '%s' "$UPDATE_TOKEN_SECRET" | pnpm exec wrangler secret put UPDATE_TOKEN_SECRET
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          UPDATE_TOKEN_SECRET: ${{ secrets.UPDATE_TOKEN_SECRET }}
+
+      - name: Deploy
+        run: pnpm deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
