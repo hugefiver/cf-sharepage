@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build and coverage output
+dist/
+coverage/
+.vite/
+
+# Cloudflare local output
+.wrangler/
+
+# Local environment and secrets
+.env
+.env.*
+.dev.vars
+
+# Package manager logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Agent/session artifacts
+.omo/
+docs/superpowers/
