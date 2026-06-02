@@ -6,6 +6,7 @@ import { bearerToken, errorResponse, jsonResponse } from "./http";
 import { createPage, updatePage } from "./publisher";
 import { parseRoute } from "./routes";
 import { serveShareRoute } from "./serve";
+import { buildSkillMarkdown } from "./skill";
 import type { Env } from "./types";
 import { UploadValidationError, validateHtmlUpload } from "./upload";
 
@@ -15,6 +16,13 @@ function methodNotAllowed(): Response {
 
 function internalError(): Response {
   return errorResponse("internal error", 500);
+}
+
+function skillResponse(request: Request): Response {
+  return new Response(
+    request.method === "HEAD" ? null : buildSkillMarkdown(new URL(request.url).origin),
+    { headers: { "content-type": "text/markdown; charset=utf-8" } },
+  );
 }
 
 function mapDomainError(error: Error): Response {
@@ -146,6 +154,14 @@ const handler: ExportedHandler<Env> = {
       }
 
       return handleCreate(request, env);
+    }
+
+    if (route.kind === "skill") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return methodNotAllowed();
+      }
+
+      return skillResponse(request);
     }
 
     if (route.kind === "update") {

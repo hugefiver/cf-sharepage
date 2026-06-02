@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import rootSkill from "../SKILL.md?raw";
 import worker from "../src/index";
 import {
   indexKey,
@@ -13,6 +14,22 @@ import { createFakeBucket } from "./helpers/fake-r2";
 
 const createHtml = "<!DOCTYPE html><html><body>version 0</body></html>";
 const updateHtml = "<!DOCTYPE html><html><body>version 1</body></html>";
+const runtimeSkillOrigin = "https://prod.example.com";
+const rootSkillMarkdown = rootSkill.trimEnd();
+
+function expectedRuntimeSkillMarkdown(origin: string): string {
+  return rootSkillMarkdown
+    .replace(
+      "- `baseUrl`: the deployed service origin, for example `https://share.example.com`.",
+      `- \`baseUrl\`: the deployed service origin: \`${origin}\`.`,
+    )
+    .replaceAll("https://...", origin)
+    .replace(
+      "- `BASE_URL`: service origin, for example `https://share.example.com`.",
+      `- Service origin: \`${origin}\`.`,
+    )
+    .replaceAll("$BASE_URL", origin);
+}
 
 type TestFetchHandler = (
   request: Request,
@@ -125,6 +142,62 @@ async function updatePageViaWorker(
 }
 
 describe("worker fetch handler", () => {
+  it("serves instance-specific skill markdown for GET /SKILL.md", async () => {
+    const env = makeEnv();
+
+    const response = await callWorker(
+      new Request(`${runtimeSkillOrigin}/SKILL.md`),
+      env,
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe(
+      "text/markdown; charset=utf-8",
+    );
+    expect(body).toBe(expectedRuntimeSkillMarkdown(runtimeSkillOrigin));
+    expect(body).toContain("name: cf-sharepage");
+    expect(body).toContain(`curl -X POST "${runtimeSkillOrigin}/app"`);
+    expect(body).toContain(
+      `curl -X POST "${runtimeSkillOrigin}/app/$PERIOD/$PAGE_ID/versions"`,
+    );
+    expect(body).toContain(`curl -i "${runtimeSkillOrigin}/s/$PERIOD/$PAGE_ID"`);
+    expect(body).toContain("$PUBLISH_TOKEN");
+    expect(body).toContain("$UPDATE_TOKEN");
+    expect(body).not.toContain("CF_SHAREPAGE");
+    expect(body).not.toContain("$BASE_URL");
+    expect(body).not.toContain("https://share.example.com");
+    expect(body).not.toContain("PowerShell");
+    expect(body).not.toContain("curl.exe");
+  });
+
+  it("serves skill headers without a body for HEAD /SKILL.md", async () => {
+    const env = makeEnv();
+
+    const response = await callWorker(
+      new Request(`${runtimeSkillOrigin}/SKILL.md`, { method: "HEAD" }),
+      env,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe(
+      "text/markdown; charset=utf-8",
+    );
+    expect(await response.text()).toBe("");
+  });
+
+  it("returns 405 for unsupported methods on /SKILL.md", async () => {
+    const env = makeEnv();
+
+    const response = await callWorker(
+      new Request(`${runtimeSkillOrigin}/SKILL.md`, { method: "POST" }),
+      env,
+    );
+
+    expect(response.status).toBe(405);
+    expect(await response.json()).toEqual({ error: "method not allowed" });
+  });
+
   it("creates a page on POST /app", async () => {
     const env = makeEnv();
 

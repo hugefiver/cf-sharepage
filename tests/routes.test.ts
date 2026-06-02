@@ -15,6 +15,16 @@ describe("parseRoute", () => {
     });
   });
 
+  describe("skill route", () => {
+    it("parses /SKILL.md as skill route", () => {
+      expect(parseRoute(new URL("https://x.test/SKILL.md"))).toEqual({ kind: "skill" });
+    });
+
+    it("rejects /SKILL.md with extra path as notFound", () => {
+      expect(parseRoute(new URL("https://x.test/SKILL.md/extra"))).toEqual({ kind: "notFound" });
+    });
+  });
+
   describe("update route", () => {
     it("parses /app/YYYYMM/{pageId}/versions as update route", () => {
       expect(parseRoute(new URL(`https://x.test/app/202606/${VALID_PAGE_ID}/versions`))).toEqual({

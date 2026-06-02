@@ -1,5 +1,6 @@
 export type AppRoute =
   | { kind: "create" }
+  | { kind: "skill" }
   | { kind: "update"; period: string; pageId: string }
   | { kind: "share"; period: string; pageId: string; version: number | null; assetPath: string }
   | { kind: "notFound" };
@@ -21,6 +22,10 @@ export function parseRoute(url: URL): AppRoute {
 
   if (parts.length === 1 && parts[0] === "app") {
     return { kind: "create" };
+  }
+
+  if (parts.length === 1 && parts[0] === "SKILL.md") {
+    return { kind: "skill" };
   }
 
   if (parts.length === 4 && parts[0] === "app" && parts[3] === "versions") {
