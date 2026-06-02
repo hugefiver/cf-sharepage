@@ -1,28 +1,26 @@
 # Project Agent Instructions
 
-## Project Direction
+This file is for agent-facing rules only. Product background, route details, and storage rationale live in [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md). Read that document before changing behavior, storage layout, API contracts, or deployment configuration.
 
-Build a Cloudflare Worker + R2-only SPA sharing service. The first version (v1) accepts one raw `index.html` file upload per version. Multi-file SPA bundle/asset upload is deferred. R2 stores HTML documents and their manifests. The service avoids KV, D1, Cloudflare Pages, and external databases.
+## Non-Negotiable Product Constraints
 
-## Stack
+- R2 is the only durable storage layer for the MVP.
+- The first version (v1) accepts one raw `index.html` upload per page version. Multi-file SPA bundles, zip uploads, and asset extraction are deferred.
+- Store per-page state in `manifest.json` objects in R2.
+- Keep latest public content under `pages/YYYYMM/{pageId}/publish/`.
+- Store immutable historical versions under `pages/YYYYMM/{pageId}/versions/{n}/`.
+- Generate public `pageId` and private `updateToken` independently with cryptographic randomness.
+- Store only an HMAC digest of update tokens in manifests.
+- Do not derive public `pageId` values from update tokens.
+- Do not add user accounts, billing, analytics, KV, D1, Pages, or external services unless the user explicitly changes scope.
+
+## Stack Rules
 
 - Use pnpm for package management and scripts.
 - Use TypeScript for all source and tests.
 - Use Vite with the Cloudflare Vite plugin for local development and builds.
-- Use Wrangler for Cloudflare deployment and R2 bindings.
+- Use Wrangler for Cloudflare deployment, local Worker testing, and R2 bindings.
 - Prefer current/latest package versions unless a compatibility issue requires pinning.
-
-## Architecture Constraints
-
-- R2 is the only durable storage layer for the MVP.
-- Store per-page state in `manifest.json` objects in R2.
-- Keep the latest public content under `pages/YYYYMM/{pageId}/publish/`.
-- Store immutable historical versions under `pages/YYYYMM/{pageId}/versions/{n}/`.
-- Do not derive public `pageId` values from update tokens.
-- Generate public `pageId` and private `updateToken` independently with cryptographic randomness.
-- Store only an HMAC digest of update tokens in manifests.
-- Do not add user accounts, billing, analytics, KV, D1, Pages, or external services unless the user explicitly changes scope.
-- The first version (v1) stores a single `index.html` document per page version under `publish/` and `versions/{n}/`. Multi-file SPA bundles and asset extraction are deferred.
 
 ## Development Rules
 
