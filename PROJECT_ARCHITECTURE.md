@@ -57,6 +57,7 @@ pages/YYYYMM/{pageId}/versions/1/index.html
 
 - `POST /app`: create a page from raw `text/html` content. Requires `Authorization: Bearer <publish token>`.
 - `POST /app/YYYYMM/{pageId}/versions`: append a new page version. Requires `Authorization: Bearer <updateToken>`.
+- `GET /SKILL.md`: serve this instance's API client skill with the current origin filled into curl examples.
 - `GET /s/YYYYMM/{pageId}`: serve latest `publish/index.html`.
 - `GET /s/YYYYMM/{pageId}/...`: latest-version SPA fallback to `publish/index.html`.
 - `GET /s/YYYYMM/{pageId}/versions/{version}`: serve immutable `versions/{version}/index.html`.

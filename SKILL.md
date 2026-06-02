@@ -96,64 +96,41 @@ Latest URLs serve the current `publish/index.html`. Fixed-version URLs serve imm
 - Body must be non-empty and start like an HTML document near the beginning, such as `<!doctype html>` or `<html>`.
 - V1 stores one `index.html` only. Inline assets or reference externally hosted assets if the page needs CSS, JS, images, or fonts.
 
-## PowerShell Client Pattern
+## Bash curl Client Pattern
 
-Use environment variables for secrets where possible.
+Use environment variables for reusable values and secrets where possible.
+
+- `BASE_URL`: service origin, for example `https://share.example.com`.
+- `PUBLISH_TOKEN`: bearer token for creating pages.
+- `UPDATE_TOKEN`: bearer token returned by the create response for later updates.
+- `PERIOD`, `PAGE_ID`, and `VERSION`: values from API responses.
 
 ### Create From A File
 
-```powershell
-$baseUrl = $env:CF_SHAREPAGE_BASE_URL
-$publishToken = $env:CF_SHAREPAGE_PUBLISH_TOKEN
-$htmlBytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath ".\index.html"))
-
-$created = Invoke-RestMethod `
-  -Method Post `
-  -Uri "$baseUrl/app" `
-  -Headers @{ Authorization = "Bearer $publishToken" } `
-  -ContentType "text/html" `
-  -Body $htmlBytes
-
-$created | ConvertTo-Json -Depth 5
+```bash
+curl -X POST "$BASE_URL/app" \
+  -H "Authorization: Bearer $PUBLISH_TOKEN" \
+  -H "Content-Type: text/html" \
+  --data-binary "@index.html"
 ```
 
 ### Update From A File
 
-```powershell
-$baseUrl = $env:CF_SHAREPAGE_BASE_URL
-$updateToken = $env:CF_SHAREPAGE_UPDATE_TOKEN
-$period = "202606"
-$pageId = "page-id-from-create-response"
-$htmlBytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath ".\index.html"))
-
-$updated = Invoke-RestMethod `
-  -Method Post `
-  -Uri "$baseUrl/app/$period/$pageId/versions" `
-  -Headers @{ Authorization = "Bearer $updateToken" } `
-  -ContentType "text/html" `
-  -Body $htmlBytes
-
-$updated | ConvertTo-Json -Depth 5
+```bash
+curl -X POST "$BASE_URL/app/$PERIOD/$PAGE_ID/versions" \
+  -H "Authorization: Bearer $UPDATE_TOKEN" \
+  -H "Content-Type: text/html" \
+  --data-binary "@index.html"
 ```
 
 ### Verify Publication
 
-```powershell
-$latest = Invoke-WebRequest -Uri $created.shareUrl
-if ($latest.StatusCode -ne 200) { throw "Latest URL returned $($latest.StatusCode)" }
-
-$fixedUrl = "$baseUrl/s/$($created.period)/$($created.pageId)/versions/$($created.version)"
-$fixed = Invoke-WebRequest -Uri $fixedUrl
-if ($fixed.StatusCode -ne 200) { throw "Fixed version URL returned $($fixed.StatusCode)" }
+```bash
+curl -i "$BASE_URL/s/$PERIOD/$PAGE_ID"
 ```
 
-## curl.exe Client Pattern
-
-```powershell
-& "curl.exe" -X POST "$env:CF_SHAREPAGE_BASE_URL/app" `
-  -H "Authorization: Bearer $env:CF_SHAREPAGE_PUBLISH_TOKEN" `
-  -H "Content-Type: text/html" `
-  --data-binary "@index.html"
+```bash
+curl -i "$BASE_URL/s/$PERIOD/$PAGE_ID/versions/$VERSION"
 ```
 
 ## Response Handling

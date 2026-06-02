@@ -24,6 +24,7 @@ The service uses Cloudflare R2 as its only storage layer. It avoids KV, D1, Clou
 
 - `POST /app`: Create a new page. Requires `Authorization: Bearer <publish token>`.
 - `POST /app/YYYYMM/{pageId}/versions`: Update an existing page. Requires `Authorization: Bearer <updateToken>`.
+- `GET /SKILL.md`: Serve this instance's API client skill with the current origin filled into curl examples.
 - `GET /s/YYYYMM/{pageId}`: Serve the latest version.
 - `GET /s/YYYYMM/{pageId}/...`: Latest-version SPA fallback. V1 serves `index.html` for all paths.
 - `GET /s/YYYYMM/{pageId}/versions/{version}`: Serve a specific version.
