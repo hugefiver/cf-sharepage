@@ -3,6 +3,7 @@
 import { readLimits } from "./config";
 import { secureTokenEqual } from "./crypto";
 import { bearerToken, errorResponse, jsonResponse } from "./http";
+import { buildHomepageHtml } from "./homepage";
 import { createPage, updatePage } from "./publisher";
 import { parseRoute } from "./routes";
 import { serveShareRoute } from "./serve";
@@ -146,6 +147,24 @@ const handler: ExportedHandler<Env> = {
 
     if (route.kind === "notFound") {
       return errorResponse("not found", 404);
+    }
+
+    if (route.kind === "home") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return methodNotAllowed();
+      }
+
+      const html = buildHomepageHtml(new URL(request.url).origin);
+
+      if (request.method === "HEAD") {
+        return new Response(null, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        });
+      }
+
+      return new Response(html, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
 
     if (route.kind === "create") {

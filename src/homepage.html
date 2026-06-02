@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share An HTML</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #161b22; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+    pre code { background: none; padding: 0; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 2rem; margin-bottom: 8px; color: #f0f6fc; }
+    h2 { font-size: 1.4rem; margin: 32px 0 12px; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+    h3 { font-size: 1.1rem; margin: 20px 0 8px; color: #e6edf3; }
+    p { margin: 8px 0; }
+    .tagline { color: #8b949e; font-size: 1.05rem; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #30363d; }
+    th { color: #f0f6fc; font-weight: 600; }
+    .method { font-weight: 600; color: #7ee787; }
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #30363d; color: #8b949e; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Share An HTML</h1>
+
+    <h2>Quick Start</h2>
+
+    <h3>Create a page</h3>
+    <p>Upload a raw HTML document to create a new shareable page. You receive a public share URL and a private update token for future updates.</p>
+<pre><code>curl -X POST "{{origin}}/app" \
+  -H "Authorization: Bearer &lt;publish-token&gt;" \
+  -H "Content-Type: text/html" \
+  --data-binary "@index.html"</code></pre>
+
+    <h3>Update a page</h3>
+    <p>Upload a new version of an existing page using the update token returned during creation.</p>
+<pre><code>curl -X POST "{{origin}}/app/YYYYMM/{pageId}/versions" \
+  -H "Authorization: Bearer &lt;update-token&gt;" \
+  -H "Content-Type: text/html" \
+  --data-binary "@index.html"</code></pre>
+
+    <h3>View a share</h3>
+    <p>Access the latest version or a specific immutable version of any published page.</p>
+<pre><code># Latest version
+curl -i "{{origin}}/s/YYYYMM/{pageId}"
+
+# Specific version
+curl -i "{{origin}}/s/YYYYMM/{pageId}/versions/0"</code></pre>
+
+    <h2>API Routes</h2>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method">POST</span></td><td><code>/app</code></td><td>Create a new page (requires publish token)</td></tr>
+        <tr><td><span class="method">POST</span></td><td><code>/app/{period}/{pageId}/versions</code></td><td>Append a new version (requires update token)</td></tr>
+        <tr><td><span class="method">GET</span></td><td><code>/s/{period}/{pageId}</code></td><td>Serve latest published version</td></tr>
+        <tr><td><span class="method">GET</span></td><td><code>/s/{period}/{pageId}/*</code></td><td>SPA fallback for latest version</td></tr>
+        <tr><td><span class="method">GET</span></td><td><code>/s/{period}/{pageId}/versions/{n}</code></td><td>Serve immutable historical version</td></tr>
+        <tr><td><span class="method">GET</span></td><td><code>/s/{period}/{pageId}/versions/{n}/*</code></td><td>SPA fallback for fixed version</td></tr>
+        <tr><td><span class="method">GET</span></td><td><code>/SKILL.md</code></td><td>API client skill markdown</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Agent Skill</h2>
+    <p>AI agents (Claude Code, OpenCode, Copilot CLI, Gemini CLI) can use this service via the built-in skill definition. Point your agent's skill loader at <code>{{origin}}/SKILL.md</code> to enable one-shot publishing from any workflow.</p>
+<pre><code>curl "{{origin}}/SKILL.md"</code></pre>
+
+    <h2>Project</h2>
+    <p>Cloudflare Worker + R2 service for single-file HTML sharing and versioning. <a href="https://github.com/hugefiver/cf-sharepage">github.com/hugefiver/cf-sharepage</a></p>
+
+    <div class="footer">
+      <p>Share An HTML — {{origin}}</p>
+    </div>
+  </div>
+</body>
+</html>

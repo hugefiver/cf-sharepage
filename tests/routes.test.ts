@@ -185,6 +185,16 @@ describe("parseRoute", () => {
     });
   });
 
+  describe("home route", () => {
+    it("parses / as home route", () => {
+      expect(parseRoute(new URL("https://x.test/"))).toEqual({ kind: "home" });
+    });
+
+    it("parses root with query string as home route", () => {
+      expect(parseRoute(new URL("https://x.test/?foo=bar"))).toEqual({ kind: "home" });
+    });
+  });
+
   describe("invalid routes", () => {
     it("rejects invalid period (5 digits)", () => {
       expect(parseRoute(new URL(`https://x.test/s/2026/${VALID_PAGE_ID}`))).toEqual({
@@ -236,8 +246,8 @@ describe("parseRoute", () => {
       });
     });
 
-    it("rejects root path", () => {
-      expect(parseRoute(new URL("https://x.test/"))).toEqual({
+    it("rejects root with extra path as notFound", () => {
+      expect(parseRoute(new URL("https://x.test/extra"))).toEqual({
         kind: "notFound",
       });
     });

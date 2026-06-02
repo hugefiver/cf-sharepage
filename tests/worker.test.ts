@@ -519,6 +519,56 @@ describe("worker fetch handler", () => {
     expect(await response.json()).toEqual({ error: "page not found" });
   });
 
+  describe("homepage", () => {
+    it("serves homepage HTML on GET /", async () => {
+      const env = makeEnv();
+
+      const response = await callWorker(
+        new Request("https://example.com/"),
+        env,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8",
+      );
+      const body = await response.text();
+      expect(body).toContain("Share An HTML");
+      expect(body).toContain("Cloudflare Worker");
+      expect(body).toContain("https://example.com/app");
+      expect(body).toContain("Quick Start");
+      expect(body).toContain("API Routes");
+      expect(body).not.toContain("{{origin}}");
+    });
+
+    it("serves homepage headers without body on HEAD /", async () => {
+      const env = makeEnv();
+
+      const response = await callWorker(
+        new Request("https://example.com/", { method: "HEAD" }),
+        env,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8",
+      );
+      expect(await response.text()).toBe("");
+    });
+
+    it("returns 405 for unsupported methods on /", async () => {
+      const env = makeEnv();
+
+      const response = await callWorker(
+        new Request("https://example.com/", { method: "POST" }),
+        env,
+      );
+
+      expect(response.status).toBe(405);
+      expect(await response.json()).toEqual({ error: "method not allowed" });
+    });
+  });
+
   it("maps other publisher errors to 400", async () => {
     const env = makeEnv({ MAX_VERSIONS: "1" });
     const created = await createPageViaWorker(env);

@@ -1,4 +1,5 @@
 export type AppRoute =
+  | { kind: "home" }
   | { kind: "create" }
   | { kind: "skill" }
   | { kind: "update"; period: string; pageId: string }
@@ -19,6 +20,10 @@ function validPageId(pageId: string): boolean {
 export function parseRoute(url: URL): AppRoute {
   const segments = url.pathname.split("/");
   const parts = segments.slice(1);
+
+  if (url.pathname === "/") {
+    return { kind: "home" };
+  }
 
   if (parts.length === 1 && parts[0] === "app") {
     return { kind: "create" };
