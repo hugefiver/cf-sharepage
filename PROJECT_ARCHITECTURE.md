@@ -72,5 +72,6 @@ pages/YYYYMM/{pageId}/versions/1/index.html
 ## Operational Notes
 
 - Use explicit size and version limits to stay within free-tier expectations.
-- GitHub Actions must sync `PUBLISH_TOKEN` and `UPDATE_TOKEN_SECRET` as Worker runtime secrets before deployment.
+- Cloudflare's Git integration deploys the Worker from the `master` branch on repository push events.
+- Configure `PUBLISH_TOKEN` and `UPDATE_TOKEN_SECRET` as Worker runtime secrets in Cloudflare, not as a GitHub Actions deploy step.
 - Local Wrangler E2E can run with `wrangler dev --local` and injected `--var` test secrets.

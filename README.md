@@ -77,29 +77,32 @@ UPDATE_TOKEN_SECRET="your-update-token-secret-here"
 pnpm exec wrangler r2 bucket create cf-sharepage-spa
 ```
 
-2. Set the Worker runtime secrets:
+1. Set the Worker runtime secrets:
 
 ```powershell
 pnpm exec wrangler secret put PUBLISH_TOKEN
 pnpm exec wrangler secret put UPDATE_TOKEN_SECRET
 ```
 
-3. Deploy the Worker:
+1. Configure Cloudflare's Git integration for this repository:
 
-```powershell
-pnpm deploy
-```
+- Repository: `hugefiver/cf-sharepage`
+- Branch: `master`
+- Root directory: `/`
+- Build command: `pnpm build`
+- Deploy command, if Cloudflare asks for one separately: `pnpm exec wrangler deploy`
 
-### GitHub Actions
+1. Push to `master` to let Cloudflare receive the repository hook and build the Worker.
 
-The project includes a deployment workflow. Ensure the following secrets are set in your GitHub repository:
+### Cloudflare Git Integration
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `PUBLISH_TOKEN`
-- `UPDATE_TOKEN_SECRET`
+Deployment is handled by Cloudflare's Git integration, not by GitHub Actions. Configure runtime settings in the Cloudflare Worker dashboard:
 
-The workflow syncs `PUBLISH_TOKEN` and `UPDATE_TOKEN_SECRET` to Worker runtime secrets before each deploy. You can also set them manually with Wrangler using the commands above.
+- R2 binding: `SPA_BUCKET` -> `cf-sharepage-spa`
+- Variables: `MAX_HTML_BYTES=5242880`, `MAX_VERSIONS=20`
+- Secrets: `PUBLISH_TOKEN`, `UPDATE_TOKEN_SECRET`
+
+The archived `.github/workflows/deploy.yml` file is kept only as a reference. Its extension prevents GitHub Actions from running deployment on push.
 
 ## Usage Examples (PowerShell)
 
